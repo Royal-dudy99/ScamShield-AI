@@ -1,0 +1,2403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScamShield AI — Intelligent Scam & Phishing Detection</title>
+    <meta name="description" content="AI-based real-time detection of scam, spam, and phishing messages using character-level machine learning and contextual security heuristics.">
+    <style>
+        :root {
+            --bg-primary: #090e1a;
+            --bg-secondary: #0f172a;
+            --bg-tertiary: #1e293b;
+            --bg-card: #141f36;
+            --bg-card-hover: #192744;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-blue: #3b82f6;
+            --accent-blue-hover: #2563eb;
+            --accent-cyan: #0ea5e9;
+            --success-green: #10b981;
+            --warning-amber: #f59e0b;
+            --danger-red: #ef4444;
+            --border-color: #1e293b;
+            --border-subtle: #24344d;
+            --border-focus: #3b82f6;
+            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --shadow-subtle: 0 4px 20px rgba(0, 0, 0, 0.25);
+            --transition-smooth: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Top Navigation Header */
+        header {
+            position: sticky;
+            top: 0;
+            width: 100%;
+            background-color: rgba(9, 14, 26, 0.94);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            height: 70px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .brand-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-cyan);
+            flex-shrink: 0;
+        }
+
+        .brand-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+        }
+
+        .brand-title span {
+            color: var(--accent-cyan);
+        }
+
+        .brand-badge {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 0.15rem 0.45rem;
+            background: rgba(14, 165, 233, 0.12);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(14, 165, 233, 0.25);
+            border-radius: var(--radius-sm);
+            margin-left: 0.25rem;
+        }
+
+        /* Product Navigation Links */
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            list-style: none;
+        }
+
+        .nav-link {
+            position: relative;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.925rem;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-sm);
+            transition: var(--transition-smooth);
+            cursor: pointer;
+            border: none;
+            background: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+            background-color: rgba(255, 255, 255, 0.04);
+        }
+
+        .nav-link.active {
+            color: var(--accent-cyan);
+            font-weight: 600;
+            background-color: rgba(14, 165, 233, 0.08);
+        }
+
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -13px;
+            left: 1rem;
+            right: 1rem;
+            height: 2px;
+            background-color: var(--accent-cyan);
+            border-radius: 2px;
+        }
+
+        /* Mobile Hamburger Button */
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.5rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            outline: none;
+        }
+
+        .mobile-toggle svg {
+            width: 22px;
+            height: 22px;
+            display: block;
+        }
+
+        /* Main View Container */
+        main {
+            flex: 1;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem 4rem;
+        }
+
+        /* Tab Pane System */
+        .tab-pane {
+            display: none;
+            animation: fadeIn 0.25s ease-out;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Common Page Header */
+        .page-header {
+            margin-bottom: 2.5rem;
+            text-align: left;
+        }
+
+        .page-tag {
+            display: inline-block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--accent-cyan);
+            margin-bottom: 0.5rem;
+        }
+
+        .page-title {
+            font-size: 2.25rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            max-width: 720px;
+            line-height: 1.6;
+        }
+
+        /* HOME TAB - Compact Hero */
+        .hero {
+            background: linear-gradient(180deg, rgba(20, 31, 54, 0.6) 0%, rgba(15, 23, 42, 0.3) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem 2rem;
+            margin-bottom: 2.5rem;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .hero-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .hero-text {
+            max-width: 680px;
+        }
+
+        .hero-title {
+            font-size: 2.25rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--text-primary);
+            line-height: 1.2;
+            margin-bottom: 0.75rem;
+        }
+
+        .hero-tagline {
+            font-size: 1.15rem;
+            font-weight: 500;
+            color: var(--accent-cyan);
+            margin-bottom: 0.75rem;
+        }
+
+        .hero-description {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .hero-cta-wrap {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        /* Credibility Metrics Row */
+        .cred-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .cred-metric-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .cred-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+        }
+
+        .cred-label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-decoration: none;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            border: 1px solid transparent;
+            outline: none;
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn-primary {
+            background-color: var(--accent-blue);
+            color: white;
+            box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-blue-hover);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-tertiary);
+            color: var(--text-secondary);
+            border-color: var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            color: var(--text-primary);
+            background-color: var(--border-subtle);
+        }
+
+        /* Message Analysis Card */
+        .analysis-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-subtle);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .input-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        textarea {
+            width: 100%;
+            height: 155px;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius-md);
+            font-family: var(--font-main);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            resize: vertical;
+            transition: var(--transition-smooth);
+            margin-bottom: 0.5rem;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .input-meta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .char-counter {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Sample Message Buttons */
+        .sample-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .sample-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+        }
+
+        .sample-buttons-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+        }
+
+        .sample-btn {
+            font-size: 0.825rem;
+            font-weight: 500;
+            padding: 0.4rem 0.85rem;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .sample-btn:hover {
+            border-color: var(--accent-cyan);
+            color: var(--text-primary);
+            background-color: var(--border-subtle);
+        }
+
+        .sample-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .dot-ham { background-color: var(--success-green); }
+        .dot-spam { background-color: var(--warning-amber); }
+        .dot-smishing { background-color: var(--danger-red); }
+
+        .actions-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        /* Spinner */
+        .spinner {
+            display: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Error Banner */
+        .error-banner {
+            display: none;
+            margin-top: 1.25rem;
+            padding: 0.85rem 1.25rem;
+            background-color: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            border-radius: var(--radius-sm);
+            color: #fca5a5;
+            font-size: 0.9rem;
+        }
+
+        /* Result Card Component */
+        .result-card {
+            display: none;
+            margin-top: 2rem;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 1.75rem;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding-bottom: 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+            gap: 1rem;
+        }
+
+        .prediction-title-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .prediction-label {
+            font-size: 1.35rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .prediction-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+        }
+
+        .risk-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.35rem 0.9rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            flex-shrink: 0;
+            color: #fff;
+        }
+
+        /* Probability Bars */
+        .prob-section {
+            margin-bottom: 1.75rem;
+        }
+
+        .prob-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 1rem;
+        }
+
+        .prob-section-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .prob-section-sub {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .prob-bar-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+        }
+
+        .prob-bar-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .prob-bar-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .prob-bar-label strong {
+            color: var(--text-primary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .prob-track {
+            width: 100%;
+            height: 9px;
+            background-color: var(--bg-tertiary);
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .prob-fill {
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            width: 0%;
+        }
+
+        /* Message Signals Area */
+        .signals-area {
+            display: none;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .signals-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 0.5rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .signals-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .signals-disclaimer {
+            font-size: 0.775rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .signal-tags-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .signal-tag-badge {
+            background-color: var(--bg-tertiary);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+            font-size: 0.825rem;
+            font-weight: 500;
+            padding: 0.35rem 0.75rem;
+            border-radius: var(--radius-sm);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        /* Safety Advice Area */
+        .safety-advice-area {
+            display: none;
+            background-color: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            border-radius: var(--radius-sm);
+            padding: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .safety-advice-title {
+            color: var(--danger-red);
+            font-size: 0.95rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .safety-advice-list {
+            list-style: none;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .safety-advice-list li {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .safety-advice-list li::before {
+            content: '•';
+            color: var(--danger-red);
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .result-disclaimer {
+            font-size: 0.775rem;
+            color: var(--text-muted);
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+            line-height: 1.5;
+        }
+
+        /* HOW IT WORKS TAB */
+        .pipeline-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            margin-bottom: 3rem;
+        }
+
+        .pipeline-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            display: flex;
+            gap: 1.5rem;
+            align-items: flex-start;
+            transition: var(--transition-smooth);
+        }
+
+        .pipeline-card:hover {
+            border-color: var(--border-subtle);
+            background-color: var(--bg-card-hover);
+        }
+
+        .step-badge {
+            width: 42px;
+            height: 42px;
+            border-radius: var(--radius-sm);
+            background: rgba(14, 165, 233, 0.12);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(14, 165, 233, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .pipeline-content {
+            flex: 1;
+        }
+
+        .pipeline-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.35rem;
+        }
+
+        .pipeline-desc {
+            font-size: 0.925rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .pipeline-meta {
+            margin-top: 0.6rem;
+            font-size: 0.8rem;
+            font-family: monospace;
+            color: var(--accent-cyan);
+        }
+
+        /* Technical Callout Card */
+        .tech-callout-card {
+            background: linear-gradient(180deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.4) 100%);
+            border: 1px solid var(--border-subtle);
+            border-left: 4px solid var(--accent-cyan);
+            border-radius: var(--radius-md);
+            padding: 1.75rem;
+            margin-bottom: 3rem;
+        }
+
+        .tech-callout-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .tech-callout-body {
+            font-size: 0.925rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Tech Stack Pills */
+        .tech-stack-section {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 2rem;
+        }
+
+        .tech-stack-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1.25rem;
+        }
+
+        .tech-pills-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .tech-pill {
+            background-color: var(--bg-tertiary);
+            border: 1px solid var(--border-subtle);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* MODEL PERFORMANCE TAB */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .kpi-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.5rem;
+            text-align: left;
+        }
+
+        .kpi-number {
+            font-size: 2.25rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .kpi-number.highlight {
+            color: var(--accent-cyan);
+        }
+
+        .kpi-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .kpi-sub {
+            font-size: 0.775rem;
+            color: var(--text-secondary);
+            margin-top: 0.35rem;
+        }
+
+        /* Section Block */
+        .perf-block {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 2rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .perf-block-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.35rem;
+        }
+
+        .perf-block-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Data Tables */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .perf-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.925rem;
+        }
+
+        .perf-table th {
+            background-color: var(--bg-tertiary);
+            color: var(--text-secondary);
+            font-weight: 600;
+            padding: 0.85rem 1.25rem;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .perf-table td {
+            padding: 0.95rem 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .perf-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .perf-table tr.summary-row td {
+            background-color: rgba(255, 255, 255, 0.02);
+            font-weight: 600;
+        }
+
+        /* Confusion Matrix Heatmap */
+        .cm-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            max-width: 620px;
+            margin: 0 auto;
+        }
+
+        .cm-legend {
+            font-size: 0.825rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .cm-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 4px;
+        }
+
+        .cm-table th {
+            padding: 0.6rem;
+            font-size: 0.825rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            text-align: center;
+        }
+
+        .cm-table td {
+            padding: 1.25rem;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            border-radius: var(--radius-sm);
+        }
+
+        .cm-cell-dominant {
+            background-color: rgba(14, 165, 233, 0.28);
+            color: #38bdf8;
+            border: 1px solid rgba(14, 165, 233, 0.4);
+        }
+
+        .cm-cell-medium {
+            background-color: rgba(14, 165, 233, 0.16);
+            color: #7dd3fc;
+            border: 1px solid rgba(14, 165, 233, 0.25);
+        }
+
+        .cm-cell-low {
+            background-color: rgba(15, 23, 42, 0.8);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+        }
+
+        .cm-cell-misclass {
+            background-color: rgba(239, 68, 68, 0.12);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.25);
+        }
+
+        /* Model Comparison Bar Chart */
+        .comp-bars-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .comp-bar-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .comp-bar-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        .comp-model-name {
+            font-weight: 500;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .selected-badge {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success-green);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 0.15rem 0.45rem;
+            border-radius: var(--radius-sm);
+        }
+
+        .comp-metric-stat {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .comp-track {
+            width: 100%;
+            height: 10px;
+            background-color: var(--bg-tertiary);
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .comp-fill {
+            height: 100%;
+            border-radius: 9999px;
+            background-color: var(--accent-blue);
+            transition: width 0.8s ease;
+        }
+
+        .comp-fill.winner {
+            background: linear-gradient(90deg, var(--accent-cyan) 0%, #38bdf8 100%);
+        }
+
+        /* Dataset Distribution Layout */
+        .dataset-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem;
+            margin-top: 1.5rem;
+        }
+
+        .dataset-stat-card {
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 1.25rem;
+        }
+
+        .dataset-stat-num {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .dataset-stat-pct {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* ABOUT TAB */
+        .about-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 3rem;
+        }
+
+        .about-feat-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .about-feat-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            background: rgba(14, 165, 233, 0.12);
+            color: var(--accent-cyan);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .about-feat-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .about-feat-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .about-spec-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .spec-box {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 2rem;
+        }
+
+        .spec-box-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .spec-key-val-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .spec-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.925rem;
+            padding-bottom: 0.65rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .spec-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .spec-key {
+            color: var(--text-secondary);
+        }
+
+        .spec-val {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: monospace;
+        }
+
+        /* Privacy Banner */
+        .privacy-box {
+            background: linear-gradient(180deg, rgba(16, 185, 129, 0.08) 0%, rgba(15, 23, 42, 0.5) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            border-radius: var(--radius-md);
+            padding: 2rem;
+        }
+
+        .privacy-box-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--success-green);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .privacy-box-desc {
+            font-size: 0.925rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 3rem 1.5rem;
+            margin-top: auto;
+        }
+
+        .footer-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+
+        .footer-brand {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .footer-logo {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .footer-tagline {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .footer-nav {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .footer-nav a:hover {
+            color: var(--accent-cyan);
+        }
+
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 2rem auto 0;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 992px) {
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .about-cards-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .about-spec-grid {
+                grid-template-columns: 1fr;
+            }
+            .dataset-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                position: relative;
+            }
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 70px;
+                left: 0;
+                right: 0;
+                background-color: var(--bg-secondary);
+                border-bottom: 1px solid var(--border-color);
+                flex-direction: column;
+                padding: 1.25rem;
+                gap: 0.5rem;
+                box-shadow: var(--shadow-subtle);
+            }
+            .nav-links.open {
+                display: flex;
+            }
+            .nav-link {
+                width: 100%;
+                justify-content: flex-start;
+                padding: 0.75rem 1rem;
+            }
+            .nav-link.active::after {
+                display: none;
+            }
+            .mobile-toggle {
+                display: block;
+            }
+            .hero-top {
+                flex-direction: column;
+            }
+            .cred-metrics {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+            .about-cards-grid {
+                grid-template-columns: 1fr;
+            }
+            .result-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .footer-inner {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-title {
+                font-size: 1.85rem;
+            }
+            .hero-title {
+                font-size: 1.75rem;
+            }
+            .analysis-card {
+                padding: 1.25rem;
+            }
+            .actions-row {
+                flex-direction: column;
+                width: 100%;
+            }
+            .actions-row .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation Header -->
+    <header>
+        <div class="nav-container">
+            <a class="logo-wrap" onclick="switchTab('home')">
+                <div class="brand-icon">
+                    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        <path d="M9 12l2 2 4-4" stroke="#38bdf8"></path>
+                    </svg>
+                </div>
+                <div class="brand-title">ScamShield<span>AI</span></div>
+                <span class="brand-badge">Intelligence</span>
+            </a>
+
+            <button class="mobile-toggle" id="mobile-toggle-btn" aria-label="Toggle navigation menu">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+
+            <nav class="nav-links" id="nav-menu">
+                <button class="nav-link active" data-tab="home" onclick="switchTab('home')">Home</button>
+                <button class="nav-link" data-tab="how-it-works" onclick="switchTab('how-it-works')">How It Works</button>
+                <button class="nav-link" data-tab="performance" onclick="switchTab('performance')">Model Performance</button>
+                <button class="nav-link" data-tab="about" onclick="switchTab('about')">About</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Views Container -->
+    <main>
+
+        <!-- ========================================== -->
+        <!-- TAB 1: HOME (MESSAGE ANALYSIS)             -->
+        <!-- ========================================== -->
+        <section class="tab-pane active" id="tab-home">
+            <!-- Product Hero Section -->
+            <div class="hero">
+                <div class="hero-top">
+                    <div class="hero-text">
+                        <div class="hero-title">ScamShield AI</div>
+                        <div class="hero-tagline">Detect suspicious messages before they deceive you.</div>
+                        <p class="hero-description">
+                            Analyze SMS, chat, and email text against character-level machine learning models and deterministic security heuristics to identify legitimate, spam, and smishing threats in real time.
+                        </p>
+                    </div>
+                    <div class="hero-cta-wrap">
+                        <button class="btn btn-primary" onclick="focusAnalyzer()">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            Analyze a Message
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Credibility Metrics -->
+                <div class="cred-metrics">
+                    <div class="cred-metric-item">
+                        <div class="cred-value">97.14%</div>
+                        <div class="cred-label">Model Accuracy</div>
+                    </div>
+                    <div class="cred-metric-item">
+                        <div class="cred-value">5,947</div>
+                        <div class="cred-label">Evaluated Messages</div>
+                    </div>
+                    <div class="cred-metric-item">
+                        <div class="cred-value">3-Class</div>
+                        <div class="cred-label">Threat Categorization</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis Tool Component -->
+            <div class="analysis-card" id="analyzer-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        Message Threat Analyzer
+                    </div>
+                    <span class="input-label">Real-time ML Inference</span>
+                </div>
+
+                <textarea id="message-input" placeholder="Paste or type an SMS, WhatsApp, or suspicious message text here to evaluate..." maxlength="5000"></textarea>
+                
+                <div class="input-meta-row">
+                    <div class="char-counter" id="char-count">0 / 5000 characters</div>
+                </div>
+
+                <!-- Example Messages -->
+                <div class="sample-section">
+                    <div class="sample-label">Load Representative Demonstration Samples:</div>
+                    <div class="sample-buttons-row">
+                        <button class="sample-btn" data-msg="Hey bro, are we meeting tomorrow?">
+                            <span class="sample-dot dot-ham"></span> Legitimate Sample 1
+                        </button>
+                        <button class="sample-btn" data-msg="Can you send me the notes from today's lecture?">
+                            <span class="sample-dot dot-ham"></span> Legitimate Sample 2
+                        </button>
+                        <button class="sample-btn" data-msg="Free entry in 2 a weekly competition to win FA Cup final tkts 21st May 2005. Text FA to 87121 to receive entry question(std txt rate)T&C apply">
+                            <span class="sample-dot dot-spam"></span> Promotional Spam
+                        </button>
+                        <button class="sample-btn" data-msg="Congratulations! You have won a cash prize. Click this link immediately to claim.">
+                            <span class="sample-dot dot-smishing"></span> Prize Scam (Smishing)
+                        </button>
+                        <button class="sample-btn" data-msg="Your account will be blocked today. Verify your KYC immediately.">
+                            <span class="sample-dot dot-smishing"></span> Banking Threat (Smishing)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Primary Action Buttons -->
+                <div class="actions-row">
+                    <button id="analyze-btn" class="btn btn-primary">
+                        <span>Analyze Message</span>
+                        <div class="spinner" id="loader"></div>
+                    </button>
+                    <button id="clear-btn" class="btn btn-secondary">Clear Input</button>
+                </div>
+
+                <!-- Error Display Banner -->
+                <div id="error-msg" class="error-banner"></div>
+
+                <!-- Dynamic Prediction Result Card -->
+                <div id="result-card" class="result-card">
+                    <div class="result-header">
+                        <div class="prediction-title-wrap">
+                            <div id="prediction-label" class="prediction-label"></div>
+                            <p id="prediction-desc" class="prediction-desc"></p>
+                        </div>
+                        <div id="risk-badge" class="risk-badge"></div>
+                    </div>
+
+                    <!-- Model Probability Breakdown -->
+                    <div class="prob-section">
+                        <div class="prob-header-row">
+                            <div class="prob-section-title">Model Probability Distribution</div>
+                            <div class="prob-section-sub">Character-Level Logistic Regression Output</div>
+                        </div>
+
+                        <div class="prob-bar-group">
+                            <div class="prob-bar-item">
+                                <div class="prob-bar-label">
+                                    <span>Ham (Legitimate)</span>
+                                    <strong id="prob-ham-text">0.0%</strong>
+                                </div>
+                                <div class="prob-track">
+                                    <div id="prob-ham-fill" class="prob-fill" style="background-color: var(--success-green);"></div>
+                                </div>
+                            </div>
+
+                            <div class="prob-bar-item">
+                                <div class="prob-bar-label">
+                                    <span>Spam (Promotional)</span>
+                                    <strong id="prob-spam-text">0.0%</strong>
+                                </div>
+                                <div class="prob-track">
+                                    <div id="prob-spam-fill" class="prob-fill" style="background-color: var(--warning-amber);"></div>
+                                </div>
+                            </div>
+
+                            <div class="prob-bar-item">
+                                <div class="prob-bar-label">
+                                    <span>Smishing (Phishing / Scam)</span>
+                                    <strong id="prob-smishing-text">0.0%</strong>
+                                </div>
+                                <div class="prob-track">
+                                    <div id="prob-smishing-fill" class="prob-fill" style="background-color: var(--danger-red);"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rule-Based Message Signals -->
+                    <div id="signals-section" class="signals-area">
+                        <div class="signals-title-row">
+                            <div class="signals-title">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                                Potential Message Signals
+                            </div>
+                            <div class="signals-disclaimer">These are rule-based indicators and do not represent the ML model's internal reasoning.</div>
+                        </div>
+                        <div id="signal-tags" class="signal-tags-wrap"></div>
+                    </div>
+
+                    <!-- Safety Advisory Panel -->
+                    <div id="safety-advice" class="safety-advice-area">
+                        <div class="safety-advice-title">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                            Recommended Security Actions
+                        </div>
+                        <ul class="safety-advice-list">
+                            <li>Do not click embedded or shortened URLs</li>
+                            <li>Do not disclose One-Time Passwords (OTPs)</li>
+                            <li>Do not share passwords or security credentials</li>
+                            <li>Never verify banking access through unverified links</li>
+                            <li>Do not transfer funds based solely on urgency claims</li>
+                            <li>Validate requests directly through verified official portals</li>
+                        </ul>
+                    </div>
+
+                    <div class="result-disclaimer">
+                        Model probabilities describe the classifier's statistical prediction distribution across classes and are not a guarantee of real-world safety.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 2: HOW IT WORKS                        -->
+        <!-- ========================================== -->
+        <section class="tab-pane" id="tab-how-it-works">
+            <div class="page-header">
+                <span class="page-tag">System Architecture</span>
+                <h1 class="page-title">How ScamShield AI Operates</h1>
+                <p class="page-subtitle">A multi-stage threat detection pipeline combining sub-word character representations, balanced logistic regression classification, and deterministic heuristic signals.</p>
+            </div>
+
+            <!-- Pipeline Cards -->
+            <div class="pipeline-grid">
+                <div class="pipeline-card">
+                    <div class="step-badge">1</div>
+                    <div class="pipeline-content">
+                        <div class="pipeline-title">Message Ingestion & Input Sanitization</div>
+                        <p class="pipeline-desc">The raw message string is submitted through the secure client interface. White-space boundary constraints, length verification (up to 5,000 characters), and validation rules ensure clean input formatting without data mutation.</p>
+                        <div class="pipeline-meta">Stage: Ingestion &bull; Constraint: [1, 5000] chars</div>
+                    </div>
+                </div>
+
+                <div class="pipeline-card">
+                    <div class="step-badge">2</div>
+                    <div class="pipeline-content">
+                        <div class="pipeline-title">Character-Level N-Gram Decomposition</div>
+                        <p class="pipeline-desc">Unlike traditional word-level tokenizers that fail against deliberate misspellings (e.g. "b-a-n-k", "v3rify"), ScamShield decomposes text into overlapping character sequences ranging from 3 to 5 characters, capturing sub-word patterns and evasion tactics.</p>
+                        <div class="pipeline-meta">Analyzer: char &bull; N-Gram Range: (3, 5) &bull; Min DF: 2</div>
+                    </div>
+                </div>
+
+                <div class="pipeline-card">
+                    <div class="step-badge">3</div>
+                    <div class="pipeline-content">
+                        <div class="pipeline-title">TF-IDF Vector Space Projection</div>
+                        <p class="pipeline-desc">The decomposed character n-grams are mapped into a high-dimensional vector space using the pre-fitted Term Frequency-Inverse Document Frequency (TF-IDF) vectorizer, weighting distinctive sub-word patterns across a vocabulary of 20,000 features.</p>
+                        <div class="pipeline-meta">Dimensionality: 20,000 features &bull; Model artifact: scam_detector_vectorizer.pkl</div>
+                    </div>
+                </div>
+
+                <div class="pipeline-card">
+                    <div class="step-badge">4</div>
+                    <div class="pipeline-content">
+                        <div class="pipeline-title">Logistic Regression Classification</div>
+                        <p class="pipeline-desc">The vectorized sample is processed by the trained multi-class Logistic Regression classifier. Optimized with balanced class weighting, the model accounts for class distribution variance across legitimate, spam, and smishing samples.</p>
+                        <div class="pipeline-meta">Classifier: LogisticRegression(C=1.0, class_weight='balanced') &bull; Artifact: scam_detector_model.pkl</div>
+                    </div>
+                </div>
+
+                <div class="pipeline-card">
+                    <div class="step-badge">5</div>
+                    <div class="pipeline-content">
+                        <div class="pipeline-title">Calibrated Probability Distribution</div>
+                        <p class="pipeline-desc">The classifier outputs posterior class probabilities via <code style="color: var(--accent-cyan);">predict_proba()</code> for Ham, Spam, and Smishing. This granular distribution enables transparent risk stratification rather than an opaque binary threshold.</p>
+                        <div class="pipeline-meta">Classes: ['ham', 'smishing', 'spam'] &bull; Target: Probability Calibration</div>
+                    </div>
+                </div>
+
+                <div class="pipeline-card">
+                    <div class="step-badge">6</div>
+                    <div class="pipeline-content">
+                        <div class="pipeline-title">Synthesized Risk & Supporting Heuristics</div>
+                        <p class="pipeline-desc">The primary prediction determines the core threat verdict (Low, Medium, or High Risk). Concurrently, an independent deterministic scanner flags contextual signals (such as embedded URLs, shortcodes, and KYC demands) to provide immediate situational awareness.</p>
+                        <div class="pipeline-meta">Heuristics: 10 Pattern Detectors &bull; Response: JSON Schema</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Architectural Callout -->
+            <div class="tech-callout-card">
+                <div class="tech-callout-title">Explicit Distinction: ML Inference vs. Rule-Based Heuristics</div>
+                <p class="tech-callout-body">
+                    <strong>The machine learning prediction is completely autonomous:</strong> Text classification is derived solely from the mathematical weights of the character TF-IDF vectorizer and Logistic Regression classifier. The "Potential Message Signals" displayed in the interface are rule-based heuristic indicators provided for contextual triage; they do <em>not</em> constitute the ML model's internal statistical reasoning or activation weights.
+                </p>
+            </div>
+
+            <!-- Technology Stack -->
+            <div class="tech-stack-section">
+                <div class="tech-stack-title">Engine Technology Stack</div>
+                <div class="tech-pills-row">
+                    <div class="tech-pill">Python 3</div>
+                    <div class="tech-pill">FastAPI</div>
+                    <div class="tech-pill">Uvicorn</div>
+                    <div class="tech-pill">Scikit-learn</div>
+                    <div class="tech-pill">Char TF-IDF Vectorizer</div>
+                    <div class="tech-pill">Logistic Regression</div>
+                    <div class="tech-pill">Pydantic v2</div>
+                    <div class="tech-pill">Joblib Serialization</div>
+                    <div class="tech-pill">Vanilla HTML5 / CSS3 / ES6</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 3: MODEL PERFORMANCE                   -->
+        <!-- ========================================== -->
+        <section class="tab-pane" id="tab-performance">
+            <div class="page-header">
+                <span class="page-tag">Empirical Evaluation</span>
+                <h1 class="page-title">Model Performance & Benchmarks</h1>
+                <p class="page-subtitle">Rigorous evaluation results measured on an untouched, held-out test split of 1,190 messages across 10 distinct algorithmic and feature extraction architectures.</p>
+            </div>
+
+            <!-- Primary Metric KPIs -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-number highlight">97.14%</div>
+                    <div class="kpi-title">Test Accuracy</div>
+                    <div class="kpi-sub">Overall classification rate</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-number">0.91</div>
+                    <div class="kpi-title">Macro F1-Score</div>
+                    <div class="kpi-sub">Unweighted class average</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-number">0.97</div>
+                    <div class="kpi-title">Weighted F1-Score</div>
+                    <div class="kpi-sub">Support-weighted average</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-number">1,190</div>
+                    <div class="kpi-title">Test Split Size</div>
+                    <div class="kpi-sub">Held-out test messages</div>
+                </div>
+            </div>
+
+            <!-- Per-Class Performance Table -->
+            <div class="perf-block">
+                <div class="perf-block-title">Per-Class Classification Metrics</div>
+                <div class="perf-block-desc">Detailed precision, recall, and harmonic F1-score breakdown across individual message classes on the test set.</div>
+                
+                <div class="table-responsive">
+                    <table class="perf-table">
+                        <thead>
+                            <tr>
+                                <th>Class Category</th>
+                                <th>Precision</th>
+                                <th>Recall</th>
+                                <th>F1-Score</th>
+                                <th>Support Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Ham (Legitimate)</strong></td>
+                                <td>0.99</td>
+                                <td>1.00</td>
+                                <td>0.99</td>
+                                <td>967</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Smishing (Phishing)</strong></td>
+                                <td>0.93</td>
+                                <td>0.87</td>
+                                <td>0.90</td>
+                                <td>125</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Spam (Promotional)</strong></td>
+                                <td>0.84</td>
+                                <td>0.83</td>
+                                <td>0.84</td>
+                                <td>98</td>
+                            </tr>
+                            <tr class="summary-row">
+                                <td><strong>Macro Average</strong></td>
+                                <td>0.92</td>
+                                <td>0.90</td>
+                                <td>0.91</td>
+                                <td>1,190</td>
+                            </tr>
+                            <tr class="summary-row">
+                                <td><strong>Weighted Average</strong></td>
+                                <td>0.97</td>
+                                <td>0.97</td>
+                                <td>0.97</td>
+                                <td>1,190</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Confusion Matrix Heatmap -->
+            <div class="perf-block">
+                <div class="perf-block-title">Confusion Matrix (Actual vs. Predicted)</div>
+                <div class="perf-block-desc">Visual heatmap illustrating classification distribution across ground-truth labels (rows) versus predicted outputs (columns).</div>
+                
+                <div class="cm-layout">
+                    <table class="cm-table">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Pred Ham</th>
+                                <th>Pred Smishing</th>
+                                <th>Pred Spam</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th style="text-align: right; padding-right: 1rem;">Actual Ham</th>
+                                <td class="cm-cell-dominant">966</td>
+                                <td class="cm-cell-low">1</td>
+                                <td class="cm-cell-low">0</td>
+                            </tr>
+                            <tr>
+                                <th style="text-align: right; padding-right: 1rem;">Actual Smishing</th>
+                                <td class="cm-cell-low">1</td>
+                                <td class="cm-cell-medium">109</td>
+                                <td class="cm-cell-misclass">15</td>
+                            </tr>
+                            <tr>
+                                <th style="text-align: right; padding-right: 1rem;">Actual Spam</th>
+                                <td class="cm-cell-misclass">10</td>
+                                <td class="cm-cell-low">7</td>
+                                <td class="cm-cell-medium">81</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="cm-legend">
+                        Diagonal values represent true positive predictions. The model correctly classified 966 of 967 legitimate messages (99.9% specificity).
+                    </div>
+                </div>
+            </div>
+
+            <!-- Architectural Comparison Chart -->
+            <div class="perf-block">
+                <div class="perf-block-title">Experimental Model Comparison</div>
+                <div class="perf-block-desc">Comparison of all 10 evaluated algorithmic configurations during development. The selected architecture achieved the highest accuracy and macro F1 score.</div>
+
+                <div class="comp-bars-list">
+                    <div class="comp-bar-item">
+                        <div class="comp-bar-top">
+                            <div class="comp-model-name">
+                                <strong>Character TF-IDF + Logistic Regression</strong>
+                                <span class="selected-badge">Selected Final Model</span>
+                            </div>
+                            <div class="comp-metric-stat">97.14% (F1: 0.91)</div>
+                        </div>
+                        <div class="comp-track"><div class="comp-fill winner" style="width: 97.14%;"></div></div>
+                    </div>
+
+                    <div class="comp-bar-item">
+                        <div class="comp-bar-top">
+                            <div class="comp-model-name">Character TF-IDF + SVM</div>
+                            <div class="comp-metric-stat">96.72% (F1: 0.90)</div>
+                        </div>
+                        <div class="comp-track"><div class="comp-fill" style="width: 96.72%;"></div></div>
+                    </div>
+
+                    <div class="comp-bar-item">
+                        <div class="comp-bar-top">
+                            <div class="comp-model-name">Character TF-IDF + SGDClassifier</div>
+                            <div class="comp-metric-stat">96.72% (F1: 0.90)</div>
+                        </div>
+                        <div class="comp-track"><div class="comp-fill" style="width: 96.72%;"></div></div>
+                    </div>
+
+                    <div class="comp-bar-item">
+                        <div class="comp-bar-top">
+                            <div class="comp-model-name">Combined Word + Character TF-IDF + Logistic Regression</div>
+                            <div class="comp-metric-stat">96.64% (F1: 0.89)</div>
+                        </div>
+                        <div class="comp-track"><div class="comp-fill" style="width: 96.64%;"></div></div>
+                    </div>
+
+                    <div class="comp-bar-item">
+                        <div class="comp-bar-top">
+                            <div class="comp-model-name">Character TF-IDF + Random Forest</div>
+                            <div class="comp-metric-stat">96.39% (F1: 0.89)</div>
+                        </div>
+                        <div class="comp-track"><div class="comp-fill" style="width: 96.39%;"></div></div>
+                    </div>
+
+                    <div class="comp-bar-item">
+                        <div class="comp-bar-top">
+                            <div class="comp-model-name">Word TF-IDF + Logistic Regression</div>
+                            <div class="comp-metric-stat">95.55% (F1: 0.87)</div>
+                        </div>
+                        <div class="comp-track"><div class="comp-fill" style="width: 95.55%;"></div></div>
+                    </div>
+
+                    <div class="comp-bar-item">
+                        <div class="comp-bar-top">
+                            <div class="comp-model-name">Word TF-IDF + SVM</div>
+                            <div class="comp-metric-stat">95.55% (F1: 0.86)</div>
+                        </div>
+                        <div class="comp-track"><div class="comp-fill" style="width: 95.55%;"></div></div>
+                    </div>
+
+                    <div class="comp-bar-item">
+                        <div class="comp-bar-top">
+                            <div class="comp-model-name">Word TF-IDF + Random Forest</div>
+                            <div class="comp-metric-stat">95.38% (F1: 0.87)</div>
+                        </div>
+                        <div class="comp-track"><div class="comp-fill" style="width: 95.38%;"></div></div>
+                    </div>
+
+                    <div class="comp-bar-item">
+                        <div class="comp-bar-top">
+                            <div class="comp-model-name">Character TF-IDF + Naive Bayes</div>
+                            <div class="comp-metric-stat">94.79% (F1: 0.84)</div>
+                        </div>
+                        <div class="comp-track"><div class="comp-fill" style="width: 94.79%;"></div></div>
+                    </div>
+
+                    <div class="comp-bar-item">
+                        <div class="comp-bar-top">
+                            <div class="comp-model-name">Word TF-IDF + Naive Bayes</div>
+                            <div class="comp-metric-stat">93.45% (F1: 0.81)</div>
+                        </div>
+                        <div class="comp-track"><div class="comp-fill" style="width: 93.45%;"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dataset Distribution Overview -->
+            <div class="perf-block">
+                <div class="perf-block-title">Dataset Distribution Overview</div>
+                <div class="perf-block-desc">Total dataset encompasses 5,947 validated records partitioned across the three threat categories.</div>
+
+                <div class="prob-track" style="height: 14px; margin-bottom: 1.25rem;">
+                    <div style="display: flex; height: 100%;">
+                        <div style="width: 81.3%; background-color: var(--success-green);" title="Ham: 81.3%"></div>
+                        <div style="width: 10.5%; background-color: var(--danger-red);" title="Smishing: 10.5%"></div>
+                        <div style="width: 8.2%; background-color: var(--warning-amber);" title="Spam: 8.2%"></div>
+                    </div>
+                </div>
+
+                <div class="dataset-grid">
+                    <div class="dataset-stat-card">
+                        <div class="dataset-stat-num">4,834</div>
+                        <div class="dataset-stat-pct" style="color: var(--success-green); font-weight: 600;">Ham (Legitimate) &bull; 81.3%</div>
+                    </div>
+                    <div class="dataset-stat-card">
+                        <div class="dataset-stat-num">626</div>
+                        <div class="dataset-stat-pct" style="color: var(--danger-red); font-weight: 600;">Smishing (Phishing) &bull; 10.5%</div>
+                    </div>
+                    <div class="dataset-stat-card">
+                        <div class="dataset-stat-num">487</div>
+                        <div class="dataset-stat-pct" style="color: var(--warning-amber); font-weight: 600;">Spam (Promotional) &bull; 8.2%</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 4: ABOUT                               -->
+        <!-- ========================================== -->
+        <section class="tab-pane" id="tab-about">
+            <div class="page-header">
+                <span class="page-tag">Product Overview</span>
+                <h1 class="page-title">About ScamShield AI</h1>
+                <p class="page-subtitle">An independently engineered cybersecurity solution providing real-time text message threat intelligence and classification through local machine learning.</p>
+            </div>
+
+            <!-- Core Capabilities Cards -->
+            <div class="about-cards-grid">
+                <div class="about-feat-card">
+                    <div class="about-feat-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    </div>
+                    <div class="about-feat-title">Sub-Millisecond Inference</div>
+                    <p class="about-feat-desc">Pre-compiled vectorization matrices and lightweight Logistic Regression enable sub-millisecond threat evaluation without latency bottlenecks.</p>
+                </div>
+
+                <div class="about-feat-card">
+                    <div class="about-feat-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20v-6M6 20V10M18 20V4"></path></svg>
+                    </div>
+                    <div class="about-feat-title">Probability Calibration</div>
+                    <p class="about-feat-desc">Outputs full posterior class distributions across Ham, Spam, and Smishing rather than rigid opaque binary flags.</p>
+                </div>
+
+                <div class="about-feat-card">
+                    <div class="about-feat-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    </div>
+                    <div class="about-feat-title">Transparent Risk Triage</div>
+                    <p class="about-feat-desc">Centralized risk classification categorizes inputs into Low, Medium, or High risk with tailored defensive guidance.</p>
+                </div>
+
+                <div class="about-feat-card">
+                    <div class="about-feat-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    </div>
+                    <div class="about-feat-title">Deterministic Heuristics</div>
+                    <p class="about-feat-desc">Independent rule-based scanning detects explicit threat indicators such as urgent keywords, banking terms, KYC claims, and malicious URLs.</p>
+                </div>
+
+                <div class="about-feat-card">
+                    <div class="about-feat-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    </div>
+                    <div class="about-feat-title">Actionable Safety Guidance</div>
+                    <p class="about-feat-desc">Delivers targeted defensive protocols whenever malicious content is flagged to prevent unauthorized credential disclosure.</p>
+                </div>
+
+                <div class="about-feat-card">
+                    <div class="about-feat-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    </div>
+                    <div class="about-feat-title">Explainable Architecture</div>
+                    <p class="about-feat-desc">Maintains separation between statistical ML inference and rule-based heuristic tags, preventing false attribution of AI reasoning.</p>
+                </div>
+            </div>
+
+            <!-- Technical Specification Blocks -->
+            <div class="about-spec-grid">
+                <div class="spec-box">
+                    <div class="spec-box-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                        Model Specifications
+                    </div>
+                    <div class="spec-key-val-list">
+                        <div class="spec-row">
+                            <span class="spec-key">Classifier Algorithm</span>
+                            <span class="spec-val">Logistic Regression</span>
+                        </div>
+                        <div class="spec-row">
+                            <span class="spec-key">Feature Representation</span>
+                            <span class="spec-val">Character TF-IDF</span>
+                        </div>
+                        <div class="spec-row">
+                            <span class="spec-key">N-Gram Range</span>
+                            <span class="spec-val">3 to 5 characters</span>
+                        </div>
+                        <div class="spec-row">
+                            <span class="spec-key">Max Features</span>
+                            <span class="spec-val">20,000</span>
+                        </div>
+                        <div class="spec-row">
+                            <span class="spec-key">Regularization (C)</span>
+                            <span class="spec-val">1.0</span>
+                        </div>
+                        <div class="spec-row">
+                            <span class="spec-key">Class Weights</span>
+                            <span class="spec-val">balanced</span>
+                        </div>
+                        <div class="spec-row">
+                            <span class="spec-key">Validation Accuracy</span>
+                            <span class="spec-val">97.14%</span>
+                        </div>
+                        <div class="spec-row">
+                            <span class="spec-key">Macro F1 Score</span>
+                            <span class="spec-val">0.91</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="spec-box">
+                    <div class="spec-box-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                        Dataset Distribution
+                    </div>
+                    <div class="spec-key-val-list">
+                        <div class="spec-row">
+                            <span class="spec-key">Total Evaluated Records</span>
+                            <span class="spec-val">5,947 messages</span>
+                        </div>
+                        <div class="spec-row">
+                            <span class="spec-key">Legitimate (Ham)</span>
+                            <span class="spec-val">4,834 (81.3%)</span>
+                        </div>
+                        <div class="spec-row">
+                            <span class="spec-key">Smishing (Phishing)</span>
+                            <span class="spec-val">626 (10.5%)</span>
+                        </div>
+                        <div class="spec-row">
+                            <span class="spec-key">Spam (Promotional)</span>
+                            <span class="spec-val">487 (8.2%)</span>
+                        </div>
+                        <div class="spec-row">
+                            <span class="spec-key">Test Split Partition</span>
+                            <span class="spec-val">1,190 messages (20%)</span>
+                        </div>
+                        <div class="spec-row">
+                            <span class="spec-key">Primary Language</span>
+                            <span class="spec-val">English / Latin text</span>
+                        </div>
+                        <div class="spec-row">
+                            <span class="spec-key">Inference Protocol</span>
+                            <span class="spec-val">Synchronous REST / JSON</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Privacy & Threat Principle -->
+            <div class="privacy-box">
+                <div class="privacy-box-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    Zero-Persistence Privacy Principle
+                </div>
+                <p class="privacy-box-desc">
+                    User submissions are evaluated entirely in-memory on the local server. Messages are never stored in databases, never written to persistent disk logs, and never transmitted to external third-party AI APIs (such as OpenAI, Gemini, or external cloud LLMs). Your data remains isolated within your operational environment.
+                </p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Professional Product Footer -->
+    <footer>
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <div class="footer-logo">ScamShield AI</div>
+                <div class="footer-tagline">Intelligent message analysis for safer digital communication.</div>
+            </div>
+
+            <nav class="footer-nav">
+                <a onclick="switchTab('home')">Home</a>
+                <a onclick="switchTab('how-it-works')">How It Works</a>
+                <a onclick="switchTab('performance')">Model Performance</a>
+                <a onclick="switchTab('about')">About</a>
+            </nav>
+        </div>
+
+        <div class="footer-bottom">
+            <div>&copy; <span id="year"></span> ScamShield AI. All rights reserved.</div>
+            <div>ScamShield AI operates as an automated decision-support capability. Verify sensitive transactions through official channels.</div>
+        </div>
+    </footer>
+
+    <!-- Client Configuration -->
+    <script src="config.js"></script>
+
+    <!-- Client Script -->
+    <script>
+        // Set dynamic copyright year
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // DOM Element References
+        const messageInput = document.getElementById('message-input');
+        const charCount = document.getElementById('char-count');
+        const analyzeBtn = document.getElementById('analyze-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const loader = document.getElementById('loader');
+        const resultCard = document.getElementById('result-card');
+        const errorMsg = document.getElementById('error-msg');
+        const mobileToggleBtn = document.getElementById('mobile-toggle-btn');
+        const navMenu = document.getElementById('nav-menu');
+
+        // Resolve API Base URL from external config or fallback
+        const API_BASE = (window.APP_CONFIG && window.APP_CONFIG.API_BASE_URL)
+            ? window.APP_CONFIG.API_BASE_URL.replace(/\/+$/, '')
+            : 'http://localhost:8000';
+
+        // ==========================================
+        // SPA TAB NAVIGATION ENGINE
+        // ==========================================
+        const validTabs = ['home', 'how-it-works', 'performance', 'about'];
+
+        function switchTab(tabId, updateHash = true) {
+            if (!validTabs.includes(tabId)) {
+                tabId = 'home';
+            }
+
+            // Update nav active classes
+            document.querySelectorAll('.nav-link').forEach(link => {
+                if (link.getAttribute('data-tab') === tabId) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+
+            // Update tab panes
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('active');
+            });
+
+            const targetPane = document.getElementById(`tab-${tabId}`);
+            if (targetPane) {
+                targetPane.classList.add('active');
+            }
+
+            // Close mobile menu if open
+            if (navMenu.classList.contains('open')) {
+                navMenu.classList.remove('open');
+            }
+
+            // Update URL hash without jitter
+            if (updateHash && window.location.hash !== `#${tabId}`) {
+                history.pushState(null, null, `#${tabId}`);
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Handle Browser Back / Forward History Navigation
+        window.addEventListener('hashchange', () => {
+            const hash = window.location.hash.replace('#', '');
+            switchTab(hash || 'home', false);
+        });
+
+        // Initialize Tab based on current URL Hash
+        window.addEventListener('DOMContentLoaded', () => {
+            const initialHash = window.location.hash.replace('#', '');
+            switchTab(initialHash || 'home', false);
+        });
+
+        // Mobile Hamburger Menu Toggle
+        mobileToggleBtn.addEventListener('click', () => {
+            navMenu.classList.toggle('open');
+        });
+
+        // Smooth Focus to Analyzer from Hero CTA
+        function focusAnalyzer() {
+            switchTab('home');
+            setTimeout(() => {
+                messageInput.focus();
+                messageInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        }
+
+        // ==========================================
+        // INPUT CONTROLS & EVENT LISTENERS
+        // ==========================================
+        messageInput.addEventListener('input', () => {
+            const count = messageInput.value.length;
+            charCount.textContent = `${count} / 5000 characters`;
+        });
+
+        // Sample message pill click handlers
+        document.querySelectorAll('.sample-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const targetBtn = e.target.closest('.sample-btn');
+                const sampleText = targetBtn.getAttribute('data-msg');
+                messageInput.value = sampleText;
+                messageInput.dispatchEvent(new Event('input'));
+                handleAnalyze();
+            });
+        });
+
+        // Clear button handler
+        clearBtn.addEventListener('click', () => {
+            messageInput.value = '';
+            messageInput.dispatchEvent(new Event('input'));
+            resultCard.style.display = 'none';
+            errorMsg.style.display = 'none';
+            messageInput.focus();
+        });
+
+        analyzeBtn.addEventListener('click', handleAnalyze);
+
+        // ==========================================
+        // API INFERENCE PIPELINE
+        // ==========================================
+        async function analyzeMessage(message) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+            
+            try {
+                const response = await fetch(`${API_BASE}/predict`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message }),
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    let errorMessage = 'Analysis request could not be processed.';
+                    try {
+                        const error = await response.json();
+                        errorMessage = error.detail || errorMessage;
+                    } catch(e) {}
+                    throw new Error(errorMessage);
+                }
+                return await response.json();
+            } catch (error) {
+                clearTimeout(timeoutId);
+                if (error.name === 'AbortError') {
+                    throw new Error(`Request timed out after 10 seconds. Verify that the backend is running at ${API_BASE}`);
+                } else if (error.message === 'Failed to fetch') {
+                    throw new Error(`Unable to establish connection to the backend server (${API_BASE}). Ensure the API service is active and accessible.`);
+                }
+                throw error;
+            }
+        }
+
+        async function handleAnalyze() {
+            const text = messageInput.value.trim();
+            if (!text) {
+                showError("Please enter message text to analyze.");
+                return;
+            }
+
+            // Set UI Loading State
+            analyzeBtn.disabled = true;
+            messageInput.disabled = true;
+            loader.style.display = 'inline-block';
+            resultCard.style.display = 'none';
+            errorMsg.style.display = 'none';
+
+            try {
+                const result = await analyzeMessage(text);
+                displayResult(result);
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                analyzeBtn.disabled = false;
+                messageInput.disabled = false;
+                loader.style.display = 'none';
+            }
+        }
+
+        function showError(msg) {
+            errorMsg.textContent = msg;
+            errorMsg.style.display = 'block';
+        }
+
+        // ==========================================
+        // RESULT RENDERING & VISUALIZATION
+        // ==========================================
+        function displayResult(result) {
+            const res = {
+                prediction: result.prediction || 'ham',
+                probabilities: result.probabilities || { ham: 0, spam: 0, smishing: 0 },
+                signals: result.signals || [],
+                risk: result.risk || 'Low Risk',
+                risk_level: result.risk_level || 'low'
+            };
+
+            const predLabel = document.getElementById('prediction-label');
+            const predDesc = document.getElementById('prediction-desc');
+            const riskBadge = document.getElementById('risk-badge');
+            const safetyAdvice = document.getElementById('safety-advice');
+            
+            const isSmishing = res.prediction.toLowerCase() === 'smishing';
+            const isSpam = res.prediction.toLowerCase() === 'spam';
+            
+            if (isSmishing) {
+                predLabel.textContent = 'POTENTIAL SMISHING / PHISHING';
+                predLabel.style.color = 'var(--danger-red)';
+                riskBadge.textContent = 'High Risk';
+                riskBadge.style.backgroundColor = 'var(--danger-red)';
+                if (predDesc) predDesc.textContent = 'This message was classified as a potential scam or phishing attempt by the trained machine learning model.';
+                safetyAdvice.style.display = 'block';
+            } else if (isSpam) {
+                predLabel.textContent = 'SPAM MESSAGE';
+                predLabel.style.color = 'var(--warning-amber)';
+                const spamProb = res.probabilities ? (res.probabilities.spam || 0) : 0;
+                const riskTitle = res.risk || (spamProb >= 0.85 ? 'High Risk' : 'Medium Risk');
+                riskBadge.textContent = riskTitle;
+                riskBadge.style.backgroundColor = (riskTitle.toLowerCase().includes('high') ? '#ea580c' : 'var(--warning-amber)');
+                if (predDesc) predDesc.textContent = 'This message was classified as an unsolicited spam/promotional message by the trained machine learning model.';
+                safetyAdvice.style.display = 'none';
+            } else {
+                predLabel.textContent = 'LEGITIMATE MESSAGE';
+                predLabel.style.color = 'var(--success-green)';
+                riskBadge.textContent = 'Low Risk';
+                riskBadge.style.backgroundColor = 'var(--success-green)';
+                if (predDesc) predDesc.textContent = 'This message was classified as a legitimate message by the trained machine learning model.';
+                safetyAdvice.style.display = 'none';
+            }
+
+            // Render Exact Calibrated Probabilities
+            const hamP = (res.probabilities.ham || 0) * 100;
+            const spamP = (res.probabilities.spam || 0) * 100;
+            const smishingP = (res.probabilities.smishing || 0) * 100;
+
+            document.getElementById('prob-ham-text').textContent = hamP.toFixed(1) + '%';
+            document.getElementById('prob-ham-fill').style.width = Math.min(100, Math.max(0, hamP)) + '%';
+            
+            document.getElementById('prob-spam-text').textContent = spamP.toFixed(1) + '%';
+            document.getElementById('prob-spam-fill').style.width = Math.min(100, Math.max(0, spamP)) + '%';
+            
+            document.getElementById('prob-smishing-text').textContent = smishingP.toFixed(1) + '%';
+            document.getElementById('prob-smishing-fill').style.width = Math.min(100, Math.max(0, smishingP)) + '%';
+
+            // Render Supporting Rule-Based Heuristic Signals
+            const signalsSection = document.getElementById('signals-section');
+            const signalTags = document.getElementById('signal-tags');
+            signalTags.innerHTML = '';
+            
+            if (res.signals && res.signals.length > 0) {
+                res.signals.forEach(sig => {
+                    const el = document.createElement('div');
+                    el.className = 'signal-tag-badge';
+                    const titleText = typeof sig === 'string' ? sig : sig.signal;
+                    el.textContent = titleText;
+                    if (sig.description) {
+                        el.title = sig.description;
+                    }
+                    signalTags.appendChild(el);
+                });
+                signalsSection.style.display = 'block';
+            } else {
+                signalsSection.style.display = 'none';
+            }
+
+            resultCard.style.display = 'block';
+            resultCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+eggs/
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+
+# Environment variables
+.env
+.env.*
+.env.local
+.env.production
+
+# Machine learning artifacts (REQUIRED FOR DEPLOYMENT - DO NOT IGNORE)
+!models/
+!models/scam_detector_model.pkl
+!models/scam_detector_vectorizer.pkl
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Node modules (if any)
+node_modules/
+
+# Distribution
+*.tar.gz
+*.whl
