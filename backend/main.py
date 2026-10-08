@@ -145,6 +145,97 @@ def detect_signals(message: str) -> List[Dict[str, str]]:
         
     return signals
 
+
+def evaluate_hybrid_risk(
+    ml_pred: str,
+    probabilities: Optional[Dict[str, float]],
+    signals: List[Dict[str, str]]
+) -> Dict[str, str]:
+    """
+    Hybrid Risk Decision Layer combining ML predictions and rule-based heuristic signals.
+    Returns a dict with 'label', 'risk', and 'risk_level' ('high', 'medium', 'low').
+    """
+    probs = probabilities or {}
+    smishing_prob = probs.get("smishing", 0.0)
+    spam_prob = probs.get("spam", 0.0)
+    ham_prob = probs.get("ham", 0.0)
+
+    signal_names = {s.get("signal") for s in signals}
+
+    has_url = "Suspicious URL Detected" in signal_names
+    has_contact = "Contact Number / Shortcode Detected" in signal_names
+    has_urgency = "Urgency Language" in signal_names
+    has_verification = "Account Verification Language" in signal_names
+    has_kyc = "KYC Terminology" in signal_names
+    has_banking = "Banking Terminology" in signal_names
+    has_prize = "Prize / Reward Language" in signal_names
+    has_payment = "Payment Request" in signal_names
+    has_otp = "OTP / Password Request" in signal_names
+    has_threat = "Account Suspension Threat" in signal_names
+    has_financial = "Financial Request" in signal_names
+
+    # 1. HIGH RISK (POTENTIAL SMISHING / PHISHING)
+    # Triggered by high ML smishing confidence OR strong phishing indicator combinations
+    is_strong_phishing_combo = (
+        (has_url and has_prize) or
+        (has_url and (has_threat or has_banking or has_kyc or (has_verification and has_urgency))) or
+        (has_url and has_otp) or
+        (has_otp and (has_threat or has_banking or has_kyc or has_verification)) or
+        (has_url and (has_payment or has_financial) and (has_urgency or has_threat or has_prize or smishing_prob >= 0.40))
+    )
+
+    if (
+        smishing_prob >= 0.70 or
+        (ml_pred == "smishing" and smishing_prob >= 0.50) or
+        is_strong_phishing_combo
+    ):
+        return {
+            "label": "POTENTIAL SMISHING / PHISHING",
+            "risk": "High Risk",
+            "risk_level": "high"
+        }
+
+    # 2. SPAM PRESERVATION
+    # Maintain spam classification when predicted by ML without strong phishing indicators
+    if ml_pred == "spam":
+        if spam_prob >= 0.85:
+            return {"label": "SPAM MESSAGE", "risk": "High Risk", "risk_level": "high"}
+        else:
+            return {"label": "SPAM MESSAGE", "risk": "Medium Risk", "risk_level": "medium"}
+
+    # 3. MEDIUM RISK (SUSPICIOUS MESSAGE)
+    # ML predicted ham, but suspicious signals exist or elevated threat probability
+    has_meaningful_signals = (
+        has_url or
+        has_financial or
+        has_payment or
+        has_banking or
+        has_kyc or
+        has_verification or
+        has_threat or
+        has_prize or
+        has_otp or
+        (has_contact and (has_urgency or has_financial or has_prize)) or
+        smishing_prob >= 0.30 or
+        spam_prob >= 0.45
+    )
+
+    if has_meaningful_signals:
+        return {
+            "label": "SUSPICIOUS MESSAGE",
+            "risk": "Medium Risk",
+            "risk_level": "medium"
+        }
+
+    # 4. LOW RISK (LEGITIMATE MESSAGE)
+    # Legitimate ham message without suspicious signals
+    return {
+        "label": "LEGITIMATE MESSAGE",
+        "risk": "Low Risk",
+        "risk_level": "low"
+    }
+
+
 class MessageRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=5000, description="Message text to analyze")
 
@@ -214,25 +305,14 @@ def predict(request: MessageRequest):
             # Safely map to class labels from model.classes_
             probabilities = {str(cls): round(float(prob), 4) for cls, prob in zip(model.classes_, proba)}
             
-        mapped = LABEL_MAP.get(pred, LABEL_MAP["ham"]).copy()
-        
-        # Dynamic risk assessment for spam based on probability
-        if pred == "spam" and probabilities:
-            spam_prob = probabilities.get("spam", 0.0)
-            if spam_prob >= 0.85:
-                mapped["risk"] = "High Risk"
-                mapped["risk_level"] = "high"
-            else:
-                mapped["risk"] = "Medium Risk"
-                mapped["risk_level"] = "medium"
-
         signals = detect_signals(msg)
+        decision = evaluate_hybrid_risk(pred, probabilities, signals)
         
         return PredictionResponse(
             prediction=pred,
-            label=mapped["label"],
-            risk=mapped["risk"],
-            risk_level=mapped["risk_level"],
+            label=decision["label"],
+            risk=decision["risk"],
+            risk_level=decision["risk_level"],
             probabilities=probabilities,
             signals=signals,
             message_length=len(msg)

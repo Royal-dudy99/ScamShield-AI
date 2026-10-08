@@ -2321,10 +2321,11 @@
         function displayResult(result) {
             const res = {
                 prediction: result.prediction || 'ham',
-                probabilities: result.probabilities || { ham: 0, spam: 0, smishing: 0 },
-                signals: result.signals || [],
+                label: result.label || 'LEGITIMATE MESSAGE',
                 risk: result.risk || 'Low Risk',
-                risk_level: result.risk_level || 'low'
+                risk_level: (result.risk_level || 'low').toLowerCase(),
+                probabilities: result.probabilities || { ham: 0, spam: 0, smishing: 0 },
+                signals: result.signals || []
             };
 
             const predLabel = document.getElementById('prediction-label');
@@ -2332,29 +2333,43 @@
             const riskBadge = document.getElementById('risk-badge');
             const safetyAdvice = document.getElementById('safety-advice');
             
-            const isSmishing = res.prediction.toLowerCase() === 'smishing';
-            const isSpam = res.prediction.toLowerCase() === 'spam';
-            
-            if (isSmishing) {
-                predLabel.textContent = 'POTENTIAL SMISHING / PHISHING';
-                predLabel.style.color = 'var(--danger-red)';
-                riskBadge.textContent = 'High Risk';
-                riskBadge.style.backgroundColor = 'var(--danger-red)';
-                if (predDesc) predDesc.textContent = 'This message was classified as a potential scam or phishing attempt by the trained machine learning model.';
-                safetyAdvice.style.display = 'block';
-            } else if (isSpam) {
-                predLabel.textContent = 'SPAM MESSAGE';
+            predLabel.textContent = res.label;
+            riskBadge.textContent = res.risk;
+
+            if (res.risk_level === 'high') {
+                if (res.label === 'SPAM MESSAGE') {
+                    predLabel.style.color = '#ea580c';
+                    riskBadge.style.backgroundColor = '#ea580c';
+                    if (predDesc) predDesc.textContent = 'This message was classified as high-confidence unsolicited commercial spam.';
+                    safetyAdvice.style.display = 'none';
+                } else {
+                    predLabel.style.color = 'var(--danger-red)';
+                    riskBadge.style.backgroundColor = 'var(--danger-red)';
+                    if (predDesc) {
+                        if (res.prediction.toLowerCase() === 'smishing') {
+                            predDesc.textContent = 'This message was classified as a potential scam or phishing attempt by the trained machine learning model.';
+                        } else {
+                            predDesc.textContent = 'This message was flagged as high risk due to critical phishing and scam threat indicators detected in the message.';
+                        }
+                    }
+                    safetyAdvice.style.display = 'block';
+                }
+            } else if (res.risk_level === 'medium') {
                 predLabel.style.color = 'var(--warning-amber)';
-                const spamProb = res.probabilities ? (res.probabilities.spam || 0) : 0;
-                const riskTitle = res.risk || (spamProb >= 0.85 ? 'High Risk' : 'Medium Risk');
-                riskBadge.textContent = riskTitle;
-                riskBadge.style.backgroundColor = (riskTitle.toLowerCase().includes('high') ? '#ea580c' : 'var(--warning-amber)');
-                if (predDesc) predDesc.textContent = 'This message was classified as an unsolicited spam/promotional message by the trained machine learning model.';
-                safetyAdvice.style.display = 'none';
+                riskBadge.style.backgroundColor = 'var(--warning-amber)';
+                if (predDesc) {
+                    if (res.prediction.toLowerCase() === 'spam') {
+                        predDesc.textContent = 'This message was classified as an unsolicited spam/promotional message by the trained machine learning model.';
+                        safetyAdvice.style.display = 'none';
+                    } else {
+                        predDesc.textContent = 'Although classified as ham by ML, suspicious security indicators were detected. Exercise caution and do not click unfamiliar links.';
+                        safetyAdvice.style.display = 'block';
+                    }
+                } else {
+                    safetyAdvice.style.display = res.prediction.toLowerCase() === 'spam' ? 'none' : 'block';
+                }
             } else {
-                predLabel.textContent = 'LEGITIMATE MESSAGE';
                 predLabel.style.color = 'var(--success-green)';
-                riskBadge.textContent = 'Low Risk';
                 riskBadge.style.backgroundColor = 'var(--success-green)';
                 if (predDesc) predDesc.textContent = 'This message was classified as a legitimate message by the trained machine learning model.';
                 safetyAdvice.style.display = 'none';

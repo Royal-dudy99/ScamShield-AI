@@ -173,6 +173,68 @@ class TestScamShieldAPI(unittest.TestCase):
         res_empty = self.client.post("/predict", json={})
         self.assertEqual(res_empty.status_code, 422)
 
+    def test_13_hybrid_risk_case1_legitimate(self):
+        """Case 1: Standard legitimate conversation message -> Low Risk / LEGITIMATE MESSAGE."""
+        msg = "Hey, are we meeting at 5 pm today?"
+        response = self.client.post("/predict", json={"message": msg})
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data.get("prediction"), "ham")
+        self.assertEqual(data.get("label"), "LEGITIMATE MESSAGE")
+        self.assertEqual(data.get("risk"), "Low Risk")
+        self.assertEqual(data.get("risk_level"), "low")
+
+    def test_14_hybrid_risk_case2_promo_without_false_smishing(self):
+        """Case 2: Promotional text without URLs/threats -> Preserves ham/spam behavior without false smishing."""
+        msg = "Get 50% off on all products today. Visit our store now!"
+        response = self.client.post("/predict", json={"message": msg})
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertNotEqual(data.get("label"), "POTENTIAL SMISHING / PHISHING")
+        self.assertNotEqual(data.get("risk_level"), "high")
+
+    def test_15_hybrid_risk_case3_phishing_prize_url(self):
+        """Case 3: Obvious prize + URL phishing -> High Risk / POTENTIAL SMISHING / PHISHING."""
+        msg = "Congratulations! You have won 10 lakh dollars. Click this link to claim your prize: https://xxxxx"
+        response = self.client.post("/predict", json={"message": msg})
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data.get("label"), "POTENTIAL SMISHING / PHISHING")
+        self.assertEqual(data.get("risk"), "High Risk")
+        self.assertEqual(data.get("risk_level"), "high")
+
+    def test_16_hybrid_risk_case4_phishing_bank_threat_url(self):
+        """Case 4: Account suspension threat + banking + URL -> High Risk / POTENTIAL SMISHING / PHISHING."""
+        msg = "Your bank account has been suspended. Verify your account immediately: https://xxxxx"
+        response = self.client.post("/predict", json={"message": msg})
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data.get("label"), "POTENTIAL SMISHING / PHISHING")
+        self.assertEqual(data.get("risk"), "High Risk")
+        self.assertEqual(data.get("risk_level"), "high")
+
+    def test_17_hybrid_risk_case5_phishing_otp_url(self):
+        """Case 5: OTP request + URL -> High Risk / POTENTIAL SMISHING / PHISHING."""
+        msg = "Your OTP is required to verify your account. Send the code immediately: https://xxxxx"
+        response = self.client.post("/predict", json={"message": msg})
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data.get("label"), "POTENTIAL SMISHING / PHISHING")
+        self.assertEqual(data.get("risk"), "High Risk")
+        self.assertEqual(data.get("risk_level"), "high")
+
+    def test_18_hybrid_risk_case6_suspicious_ham_url_financial(self):
+        """Case 6: ML predicts ham, but suspicious URL + financial signals exist -> Medium Risk / SUSPICIOUS MESSAGE."""
+        msg = "Wanna 10 lakh dollars? Click on this link https://xxxxx"
+        response = self.client.post("/predict", json={"message": msg})
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data.get("prediction"), "ham")
+        self.assertEqual(data.get("label"), "SUSPICIOUS MESSAGE")
+        self.assertEqual(data.get("risk"), "Medium Risk")
+        self.assertEqual(data.get("risk_level"), "medium")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
